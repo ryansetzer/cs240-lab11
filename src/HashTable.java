@@ -1,8 +1,7 @@
 /**
  * Simple HashTable class.
- * 
- * @author CS240 Instructors and ...
  *
+ * @author CS240 Instructors and RYAN SETZER
  */
 public class HashTable<K, V> {
 
@@ -25,25 +24,25 @@ public class HashTable<K, V> {
     }
 
     /* Getters and setters */
-    public K key() { 
-      return key; 
+    public K key() {
+      return key;
     }
-    
+
     public V value() {
       return value;
     }
-    
+
     public void setValue(V value) {
       this.value = value;
     }
-    
+
     public boolean isDeleted() {
       return tombstone;
     }
-    
+
     public void delete() {
       tombstone = true;
-    } 
+    }
   }
 
   public static final int INITIAL_CAPACITY = 16; // must be a power of 2.
@@ -76,18 +75,36 @@ public class HashTable<K, V> {
     //
     // Your code in this method should handle collisions using simple linear probing.
 
+    Item<K, V> item = new Item<>(key, value);
+
+    if (findKey(key) == -1) { // If key is not in table
+      if ((double) (size) / table.length >= MAX_LOAD) {
+        rehash();
+      }
+      int index = indexFor(key.hashCode(), table.length - 1);
+      while (table[index] != null && !table[index].isDeleted()) {
+        index++;
+        if (index > table.length) {
+          index = 0;
+        }
+      }
+      table[index] = item;
+      size++;
+    } else {
+      table[findKey(key)] = item;
+    }
   }
 
   /**
    * Return the value associated with the provided key, or null if no such value exists.
    */
   public V get(K key) {
-
-    // UNFINISHED!
-
     // Notice that much of the logic will be the same for get and remove. I suggest completing the
     // findKey helper method below.
-
+    int index = findKey(key);
+    if (index != -1 && !table[index].isDeleted()) {
+      return table[index].value();
+    }
     return null;
 
   }
@@ -97,10 +114,13 @@ public class HashTable<K, V> {
    * the key is not stored in the table.
    */
   public V remove(K key) {
-
-    // UNFINISHED!
+    int index = findKey(key);
+    if (index != -1) {
+      table[index].delete();
+      size--;
+      return table[index].value();
+    }
     return null;
-
   }
 
   /**
@@ -118,6 +138,14 @@ public class HashTable<K, V> {
    */
   private void rehash() {
     // UNFINISHED!
+    Item[] copyTable = table.clone();
+    table = new Item[table.length * 2];
+    size = 0;
+    for (int i = 0; i < copyTable.length; i++) {
+      if (copyTable[i] != null && !copyTable[i].isDeleted()) {
+        put((K) copyTable[i].key(), (V) copyTable[i].value());
+      }
+    }
   }
 
 
@@ -127,9 +155,13 @@ public class HashTable<K, V> {
    */
   private int findKey(K key) {
     // UNFINISHED -- THIS METHOD SHOULD BE HELPFUL FOR BOTH GET AND REMOVE.
+    for (int i = 0; i < table.length; i++) {
+      if (table[i] != null && table[i].key().equals(key) && !table[i].isDeleted()) {
+        return i;
+      }
+    }
     return -1;
   }
-
 
 
   /**
@@ -143,7 +175,7 @@ public class HashTable<K, V> {
    * Applies a supplemental hash function to a given hashCode, which defends against poor quality
    * hash functions. This is critical because HashMap uses power-of-two length hash tables, that
    * otherwise encounter collisions for hashCodes that do not differ in lower bits.
-   * 
+   *
    * <p>YOU SHOULD NOT CALL THIS METHOD DIRECTLY. IT IS A HELPER FOR THE indexFor METHOD ABOVE.
    */
   private int hash(int h) {
@@ -154,10 +186,18 @@ public class HashTable<K, V> {
     return h ^ (h >>> 7) ^ (h >>> 4);
   }
 
+  public void printAll() {
+    for (int i = 0; i < table.length; i++) {
+      try {
+        System.out.println("table[" + i + "]: " + table[i].key());
+      } catch (Exception e) {
+        System.out.println(i);
+      }
+    }
+  }
 
 
 }
-
 
 
 // The hash and indexFor methods are taken directly from the Java HashMap

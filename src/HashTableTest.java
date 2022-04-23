@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Minimal tests for a simple HashTable class.
- * 
+ *
  * @author Nathan Sprague
  *
  */
 class HashTableTest {
-  
+
   private HashTable<Integer, Integer> table;
 
   @BeforeEach
